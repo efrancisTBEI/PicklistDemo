@@ -1,0 +1,129 @@
+@Styles.Render("~/Content/PicklistStyles.css")
+@{
+    ViewBag.Title = "Home Page";
+}
+
+@using (Html.BeginForm("Picklist", "Default", FormMethod.Post))
+{
+<div class="row" style="padding-top:10px">
+    <div class="col-md-4" style="border:double; height:50px;width:25%;padding-top:15px">
+        @Html.Label("Picklist Date:")
+    </div>
+    <div class="col-md-4" style="border:double; height:50px;width:75%;padding-left:35px">
+        @Html.Label("Picklist Date:")
+        @Html.EJ().DropDownList("PicklistDates").Datasource((IEnumerable<object>)ViewBag.PicklistDates).DropDownListFields(Df => Df.Text("Text").Value("Value")).Width("300").Value(ViewBag.strPickDate)
+        &nbsp;
+        @Html.EJ().Button("btnSubmit").Text("Submit").CssClass("btnCSS").Width("120").ClientSideEvents(e => e.Click("onClick"))
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4" style="border:double; height:50px;width:25%">
+        @Html.Label((string)TempData["strPickDates"])
+    </div>
+    <div class="col-md-4" style="border:double; height:50px;width:75%;padding-top:5px;padding-left:35px">
+        @Html.EJ().Button("btnSelection1").Text("Selection 1").CssClass("btnCSS").Width("120") &nbsp;&nbsp;
+        @Html.EJ().Button("btnSelection2").Text("Selection 2").CssClass("btnCSS").Width("120") &nbsp;&nbsp;
+        @Html.EJ().Button("btnSelection3").Text("Selection 3").CssClass("btnCSS").Width("120") &nbsp;&nbsp;
+        @Html.EJ().Button("btnSelection4").Text("Selection 4").CssClass("btnCSS").Width("120") &nbsp;&nbsp;
+        @Html.EJ().Button("btnSelection5").Text("Selection 5").CssClass("btnCSS").Width("120") &nbsp;&nbsp;
+        @Html.EJ().Button("btnSelection6").Text("Selection 6").CssClass("btnCSS").Width("120") &nbsp;&nbsp;
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4" style="border:double; height:750px;width:25%;padding-top:10px">
+        @(Html.EJ().Grid<object>("FlatGrid")
+                        .AllowPaging(true)
+                        .PageSettings(page => page.PageSize(18))
+                        .Columns(col =>
+                        {
+                            col.Field("RGID").HeaderText("Resource\nGroup").Add();
+                            col.Field("Priority").HeaderText("Priority").Add();
+                        })
+                        .ClientSideEvents(eve => eve.ActionComplete("onActionComplete"))
+                        .Datasource(ds => ds.Json((IEnumerable<object>)ViewBag.dtPLGrps)))
+
+
+    </div>
+    <div class="col-md-4" style="border:double;height:750px;width:75%">
+    </div>
+</div>
+}
+
+<style>
+    /*.e-datewidget {
+            display: inline-block;
+            position: relative;
+            top: 10px;
+        }*/
+
+    .inline {
+        display: inline-block;
+        padding-top: 10px;
+    }
+
+    .label {
+        padding-bottom: 10px;
+    }
+
+    .myButtonCSS {
+        padding-top: 20px;
+        background-color: aqua;
+    }
+
+    .column {
+        float: left;
+        width: auto;
+        padding-right: 10px;
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .e-button.btnCSS {
+        background-color: #94bbd5;
+    }
+
+    .e-ddl {
+        display: inline-flex;
+        padding-top: 5px;
+    }
+</style>
+
+<script>
+    function onClick(args) {
+
+        ////var gridObj = $("#FlatGrid").data("ejGrid");
+        var datePickerDDLvalue = $("#PicklistDates").val();
+        alert(datePickerDDLvalue);
+        $.post("/Home/Index", { strPicklist: datePickerDDLvalue });
+
+        //$.ajax({
+        //    type: "POST",
+        //    url: "/Home/Index",
+        //    //Sending  data to the server(controller) side
+        //    data: {
+        //        "strPickDate": datePickerDDLvalue
+        //    }
+        //});
+
+    }
+
+
+    function onActionComplete(args) {
+        if (args.requestType == "searching")
+            this.selectRows(0); // Select first row on search data
+    }
+
+    function create(args) {
+        var obj = $('#<%= Grid.ClientID %>').data("ejGrid");
+        var rowHeight = obj.getRowHeight();
+        var selectedRowIndex = 1;
+        obj.getScrollObject().scrollY(rowHeight * selectedRowIndex);
+        obj.selectRows(selectedRowIndex);
+    }
+
+</script>

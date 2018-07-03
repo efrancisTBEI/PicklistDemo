@@ -1,0 +1,18 @@
+﻿@(Html.EJ().Grid<object>("grdAssemblyList2")
+    .ToolbarSettings(toolBar => toolBar.ShowToolbar().ToolbarItems(items => { items.AddTool(ToolBarItems.ExcelExport); }))
+    .AllowPaging(true)
+    .PageSettings(page => page.PageSize(15))
+    .Mappers(map => map.ExportToExcelAction("Default/ExportToExcel"))
+    .Columns(col =>
+    {
+        col.Field("Item").HeaderText("Item").Width(75).TextAlign(TextAlign.Center).Add();
+        col.Field("Description").HeaderText("Description").Add();
+        col.Field("MatlDescription").HeaderText("Material Description").Add();
+        col.Field("Qty").HeaderText("Qty").Width(48).TextAlign(TextAlign.Center).Add();
+        col.Field("Priority").HeaderText("Priority").Width(74).TextAlign(TextAlign.Center).Add();
+        col.Field("FirstGrp").HeaderText("Resource").Width(80).TextAlign(TextAlign.Center).Add();
+        col.Field("NewGrp").HeaderText("New Rsrc").Width(80).TextAlign(TextAlign.Center).Add();
+        col.Field("LineLoc").HeaderText("Line").Width(73).Add();
+        col.Field("StartDate").HeaderText("Date").Width(85).Add();
+    })
+    .Datasource(ds => ds.Json((IEnumerable<object>)Session["dataSourcegrdData2"])))

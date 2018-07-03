@@ -1,0 +1,225 @@
+﻿@Styles.Render("~/Content/Spinner.css")
+@Scripts.Render("~/Scripts/Spinner.js")
+
+@* Row #1 *@
+<div class="row" style="padding-top:10px">
+    @* Display Site Logo *@
+    <div class="col-md-4" style="border:double; height:50px;width:25%;text-align:center;font-size:large">
+        <img src="~/Images/tbei.jpg" height="40" width="135" />
+        <p />
+    </div>
+
+    @* Display dropdown list for date selection. *@
+    <div class="col-md-4" style="border:double; height:50px;width:75%;">
+        @{ Html.RenderPartial("PicklistDates");}
+    </div>
+</div>
+
+@* Row #2 *@
+<div class="row">
+    @* Display the resource groups returned by the date query above. *@
+    <div id="ajaxResourceGroups" class="col-md-4" style="border:double; height:750px;width:25%;padding-top:10px">
+        @{ Html.RenderPartial("PicklistResourceGroups"); }
+    </div>
+
+    @* Display the generated picklists. *@
+    <div id="ajaxAssemblyList" class="col-md-4" style="border:double;height:750px;width:75%;padding-top:10px">
+        @{Html.RenderPartial("PicklistAssemblyLists");}
+    </div>
+</div>
+
+@*This DIV displays the waiting spinner during login.*@
+<div class="spinner" style="display:none">
+    <div class="center-div">
+        <div class="info" style="color:white;text-align:center">
+            Gathering data ...please stand by <br />
+        </div>
+        <div class="inner-div">
+            <div class="loader"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+<style>
+    .e-datewidget {
+            display: inline-block;
+            position: relative;
+            top: 10px;
+        }
+
+    .label {
+        padding-bottom: 10px;
+    }
+
+    .column {
+        float: left;
+        width: auto;
+        padding-right: 10px;
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .e-button.btnSubmit {
+        background-color: #94bbd5;
+        display: none;
+    }
+
+    .e-button.btnCSS {
+        background-color: #94bbd5;
+    }
+
+    .e-ddl {
+        display: inline-flex;
+        padding-top: 5px;
+    }
+</style>
+
+<script>
+
+    $(window).on("load", function () {   });
+
+    $(document).ready(function () {
+        // Hide these textboxes as they only store info for client / server
+        // round trips.
+        document.getElementById("priorityText").style.display = "none";
+        document.getElementById("resourceGroupText").style.display = "none";
+        document.getElementById("strLocationType").style.display = "none";
+        document.getElementById("txtPicklistDates").style.display = "none";
+        //document.getElementById("btnCloseDate").style.display = "none";
+
+        // Displays the Resource Group and Priority each time the resource
+        // group grid is clicked.
+        document.getElementById("rgPriority").style.display = "inline-flex";
+        document.getElementById("rgPriority").style.paddingLeft = "50";
+        document.getElementById("rgPriority").style.width = "100";
+        document.getElementById("rgPriority").style.textAlign = "center";
+        document.getElementById("rgPriority").style.fontWeight = "bold";
+        document.getElementById("rgPriority").style.color = "blue";
+    });
+
+    // Dropdownlist processing
+    function ddlOnClick()
+    {
+        // Get the selected date value and store it to session variable.
+        var ddlObj = $('#PicklistDates').data("ejDropDownList");
+        var selectedDate = ddlObj.getSelectedValue()
+
+        // Get the selected date to pass as a parameter below.
+        $('#txtPicklistDates').val(selectedDate);
+        document.cookie = 'PicklistDate=' + selectedDate
+
+        // Turn on the "Waiting..." css spinner.
+        $('.spinner').css('display', 'block');
+
+        // Run the partial view controller action.
+        $.ajax({
+            cache: false,
+            url: "@Url.Action("DisplayResourceGroupsAndPriority", "Default")?strPickDate=" + selectedDate,
+            success: onSuccessResourceGroups,
+            error: onNoJoy
+        });
+
+        // Ajax call successful, so display data.
+        function onSuccessResourceGroups(result)
+        {
+            $("#ajaxResourceGroups").html(result);
+            ej.widget.init($("#ajaxResourceGroups"));
+            $('.spinner').css('display', 'none');
+        }
+
+        // Ajax call unsuccessful.
+        function onNoJoy()
+        {
+            alert("A system error has occured.  Please close this page and re-open.");
+            $('.spinner').css('display', 'none');
+        }
+
+    }
+
+    // If a selected date returns no data then allow the user to remove it from the list.
+    function onCloseDate()
+    {
+
+        // Get the currently selected date.
+        var ddlObj = $('#PicklistDates').data("ejDropDownList");
+        var selectedDate = ddlObj.getSelectedValue()
+
+        // Only proceed if a valid date is selected.
+        if (selectedDate.length != 0)
+        {
+
+            swal({
+                title: 'Close Picklist Date: ' + selectedDate + '?',
+            text: '',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, close it!',
+                cancelButtonText: 'No, keep it open.'
+            }).then((result) => {
+                if (result.value) {
+
+                    location.href = "@Url.Action("ClosePicklist", "Default")?picklistDateToClose=" + selectedDate;
+
+                    swal(
+                        'Picklist date: ' + selectedDate + ' has been closed.',
+                        '',
+                        'success'
+                    )
+
+                } else if (result.dismiss === swal.DismissReason.cancel) {
+                }
+            })
+
+            @*if (confirm('Please confirm that you wish to close the date ' + selectedDate + '?')) {
+
+                // Turn on the "Waiting..." css spinner.
+                $('.spinner').css('display', 'block');
+
+                location.href = "@Url.Action("ClosePicklist", "Default")?picklistDateToClose=" + selectedDate;
+            }*@
+        }
+    }
+
+    function onAssemblyGridClick(args)
+    {
+        // Get the Resource Group and Priority data from the selected row.
+        // Then, submit.
+        var _RGID = this.getCurrentViewData()[this.selectedRowsIndexes].RGID;
+        var _Priority = this.getCurrentViewData()[this.selectedRowsIndexes].Priority;
+
+        $('#resourceGroupText').val(_Priority);
+        $('#priorityText').val(_RGID);
+        $('#rgPriority').val(_RGID + ' / ' + _Priority)
+        $('#strLocationType').val("1");
+
+        // Run the partial view controller action.
+        $.ajax({
+            cache: false,
+            url: '@Url.Action("DisplayPicklists", "default")' + "?strRGID=" + _Priority + "&strPriority=" + _RGID,
+            success: onSuccess,
+            error: onThisError
+        });
+
+        // Ajax call successful, so diplay data.
+        function onSuccess(result)
+        {
+            $("#ajaxAssemblyList").html(result);
+            ej.widget.init($("#ajaxAssemblyList"));
+
+            //$("#tabPicklist").ejTab({ selectedItemIndex: 1 });
+
+        }
+
+        function onThisError(result) { alert("Error loading page.");}
+    }
+
+</script>

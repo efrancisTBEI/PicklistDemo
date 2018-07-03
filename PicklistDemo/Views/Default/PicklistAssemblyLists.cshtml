@@ -1,0 +1,24 @@
+﻿@Html.EJ().Tab("tabPicklist").Items(data =>
+{
+    data.Add().ID("finish").Text("Finish").ContentTemplate(@<div id="ajaxGrid1">@{Html.RenderPartial("_PicklistGrid1");}</div>);
+            data.Add().ID("frames").Text("Frames").ContentTemplate(@<div id="ajaxGrid2">@{Html.RenderPartial("_PicklistGrid2");}</div>);
+                    data.Add().ID("fronts").Text("Fronts").ContentTemplate(@<div id="ajaxGrid3">@{Html.RenderPartial("_PicklistGrid3");}</div>);
+                            data.Add().ID("tailgate").Text("Tailgate").ContentTemplate(@<div id="ajaxGrid5">@{Html.RenderPartial("_PicklistGrid5");}</div>);
+                                    data.Add().ID("sides").Text("Sides").ContentTemplate(@<div id="ajaxGrid4">@{Html.RenderPartial("_PicklistGrid4");}</div>);
+                                            data.Add().ID("weldout").Text("Weldout").ContentTemplate(@<div id="ajaxGrid6">@{Html.RenderPartial("_PicklistGrid6");}</div>);
+                                                })
+
+<script>
+
+    // Get the total rows returned for each grid
+    var grid1RowCount = '@Session["Grid1RowCount"]';
+    var grid2RowCount = '@Session["Grid2RowCount"]';
+    var grid3RowCount = '@Session["Grid3RowCount"]';
+    var grid4RowCount = '@Session["Grid4RowCount"]';
+    var grid5RowCount = '@Session["Grid5RowCount"]';
+    var grid6RowCount = '@Session["Grid6RowCount"]';
+
+</script>
+
+@Html.EJ().ScriptManager()
+

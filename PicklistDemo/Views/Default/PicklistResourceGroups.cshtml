@@ -1,0 +1,26 @@
+﻿@(Html.EJ().Grid<object>("grdResourceGroups")
+       .AllowPaging(true)
+       .AllowSelection()
+       .PageSettings(page => page.PageSize(18))
+       .EnableRowHover(true)
+       .SelectionType(SelectionType.Single)
+       .Columns(col =>
+       {
+           col.Field("RGID").HeaderText("Resource\nGroup").Add();
+           col.Field("Priority").HeaderText("Priority").Add();
+       })
+       .ClientSideEvents(eve => eve.RecordClick("onAssemblyGridClick"))
+       .ClientSideEvents(cse => cse.ActionComplete("onActionComplete"))
+       .Datasource(ds => ds.Json((IEnumerable<object>)Session["dataSourcePicklistGroups"])))
+
+@Html.EJ().ScriptManager()
+
+<script type="text/javascript">
+    function onActionComplete(args)
+        this.selectRows(0)
+</script>
+
+
+
+
+

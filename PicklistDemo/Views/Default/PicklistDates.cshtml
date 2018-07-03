@@ -1,0 +1,29 @@
+﻿@Html.Label("Picklist Date:")
+@Html.EJ().DropDownList("PicklistDates").Datasource((IEnumerable<object>)Session["dataSourcePicklistDates"]).ClientSideEvents(e => e.Change("ddlOnClick")).ClientSideEvents(e=> e.DataBound("ddlSimulateClick")).DropDownListFields(Df => Df.Text("Text").Value("Value")).Value((string)Session["strPickDate"])&nbsp;
+@Html.EJ().Button("btnSubmit").Text("Submit").Type(ButtonType.Submit).CssClass("btnSubmit").Width("120")&nbsp;
+@Html.EJ().Button("btnCloseDate").Text("Close Picklist Date").Type(ButtonType.Button).Width("150").ClientSideEvents(e => e.Click("onCloseDate"))
+
+@Html.TextBox("priorityText", null, new { @class = "form-control" })
+@Html.TextBox("resourceGroupText", null, new { @class = "form-control" })
+@Html.TextBox("strLocationType", null, new { @class = "form-control" })
+@Html.TextBox("rgPriority", null, new { @class = "form-control" })
+@Html.TextBox("txtPicklistDates", null, new { @class = "form-control" })
+
+<script type="text/javascript">
+
+    function ddlSimulateClick()
+    {
+        var DropDownListObj = $('#PicklistDates').ejDropDownList().data('ejDropDownList');
+        //DropDownListObj.selectItemsByIndices("0,1"); 
+        //var grd1 = $('#grdAssemblyList1').ejGrid().data('ejGrid');
+        //grd1.datasource = null;
+    }
+
+</script>
+
+
+
+
+
+
+
