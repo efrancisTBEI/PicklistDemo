@@ -15,10 +15,13 @@ using Syncfusion.XlsIO;
 using System.Collections;
 using System.Reflection;
 using ClosedXML.Excel;
+using ActiveDirectorySearchDemo;
+
+using System.DirectoryServices;
+using System.DirectoryServices.AccountManagement;
 
 namespace PicklistDemo.Controllers
 {
-
     public class MultipleViewResult : ActionResult
     {
         public const string ChunkSeparator = "---|||---";
@@ -66,9 +69,16 @@ namespace PicklistDemo.Controllers
             return Redirect(Url.Content("~/")); 
         }
 
-        public PartialViewResult DisplayResourceGroupsAndPriority(string strPickDate)
+        public PartialViewResult DisplayResourceGroupsAndPriority(string strPickDate, string strSiteID )
         {
+
+            //var strConnStr = GetSyteLineConnectionString(strSiteID);
+            //var strConnStr = "TBEI_AppConnectionString";
+            //throw new Exception(strConnStr.ToString());
+
+            //var cnSTR = ConfigurationManager.ConnectionStrings[strConnStr.ToString()].ConnectionString;
             var cnSTR = ConfigurationManager.ConnectionStrings["LC_AppConnectionString"].ConnectionString;
+
             SqlConnection cn = new SqlConnection(cnSTR);
             SqlCommand cmd = new SqlCommand();
             cmd.Connection = cn;
@@ -224,7 +234,42 @@ namespace PicklistDemo.Controllers
             cn.Close();
         }
 
-        private List<object> GetPicklistDates()
+        private string GetSyteLineConnectionString(string siteID)
+        {
+            if (siteID == "CORP") siteID = "TBEI";
+
+            string strSytelineConnectionString = "";
+
+
+            var cnSTR = ConfigurationManager.ConnectionStrings["ShopfloorConnectionString"].ConnectionString;
+            SqlConnection cn = new SqlConnection(cnSTR);
+            cn.Open();
+
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = cn;
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = "SELECT SiteConstr FROM SiteMaster WHERE SiteID = '" + siteID + "'";
+
+            DataTable dt = new DataTable();
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+
+            if (dt.Rows.Count > 0)
+            {
+                strSytelineConnectionString = dt.Rows[0]["SiteConstr"].ToString();
+            }
+
+            return strSytelineConnectionString;
+        }
+
+        private string GetShopConnectionString(string shopCode)
+        {
+            string strShopConnectionString = "";
+            return strShopConnectionString;
+        }
+
+        private List<object> GetPicklistDates(int siteID = 1)
         {
             DataTable dtDates = new DataTable();
             dtDates.Columns.AddRange(new DataColumn[1] { new DataColumn("SplitDate", typeof(string)) });
@@ -237,7 +282,7 @@ namespace PicklistDemo.Controllers
             SqlCommand cmd = new SqlCommand();
             cmd.Connection = cn;
             cmd.CommandType = CommandType.Text;
-            cmd.CommandText = "SELECT CONVERT(varchar,PickDate,101) AS PickDate FROM PickDate WHERE Active = 1 ORDER BY PickDate";
+            cmd.CommandText = "SELECT CONVERT(varchar,PickDate,101) AS PickDate FROM PickDate WHERE Active = 1 AND SiteID = " + siteID + " ORDER BY PickDate";
 
             List<object> dropObj = new List<object>();
 
@@ -347,75 +392,88 @@ namespace PicklistDemo.Controllers
 
             dtPL.DefaultView.Sort = "FirstGrp, Priority, StartDate, Item";
             DataTable dtX = dtPL.DefaultView.ToTable(true);
+            DataTable dtExcelExport = dtPL.DefaultView.ToTable(true);
             dtPL = dtX;
 
-            dtExcelExport = dtPL;
+
+            // Put the Qty column in position 2 and remove the last 5
+            // columns for the Excel export so that the output will
+            // match what the pickers are used to seeing.
+            dtExcelExport.Columns[3].SetOrdinal(1);
+            dtExcelExport.Columns.RemoveAt(8);
+            dtExcelExport.Columns.RemoveAt(7);
+            dtExcelExport.Columns.RemoveAt(6);
+            dtExcelExport.Columns.RemoveAt(5);
+            dtExcelExport.Columns.RemoveAt(4);
+            dtExcelExport.Columns.Add("Picked");
+            dtExcelExport.Columns[3].ColumnName = "Material Description";
+
             Session["dtPL"] = dtPL;
 
             switch (strCnt)
             {
                 case "1":
-                    Session["LineLocDataSource1"] = dtPL;
+                    Session["LineLocDataSource1"] = dtExcelExport;
                     Session["Grid1RowCount"] = dtPL.Rows.Count.ToString();
                     Session["dataSourcegrdData1"] = ConvertDataTableToJSON(dtPL);
                     if (strNewRGID == "200-6")
                     {
-                        Session["LineLocDataSource1"] = null;
+                        //Session["LineLocDataSource1"] = null;
                         Session["dataSourcegrdData1"] = null;
                         Session["Grid1RowCount"] = "0";
                     }
                     break;
                 case "2":
-                    Session["LineLocDataSource2"] = dtPL;
+                    Session["LineLocDataSource2"] = dtExcelExport;
                     Session["Grid2RowCount"] = dtPL.Rows.Count.ToString();
                     Session["dataSourcegrdData2"] = ConvertDataTableToJSON(dtPL);
                     if (strNewRGID != "200-6")
                     {
-                        Session["LineLocDataSource2"] = null;
+                        //Session["LineLocDataSource2"] = null;
                         Session["dataSourcegrdData2"] = null;
                         Session["Grid2RowCount"] = "0";
                     }
                     break;
                 case "3":
-                    Session["LineLocDataSource3"] = dtPL;
+                    Session["LineLocDataSource3"] = dtExcelExport;
                     Session["Grid3RowCount"] = dtPL.Rows.Count.ToString();
                     Session["dataSourcegrdData3"] = ConvertDataTableToJSON(dtPL);
                     if (strNewRGID == "200-6")
                     {
-                        Session["LineLocDataSource3"] = null;
+                        //Session["LineLocDataSource3"] = null;
                         Session["dataSourcegrdData3"] = null;
                         Session["Grid3RowCount"] = "0";
                     }
                     break;
                 case "4":
-                    Session["LineLocDataSource4"] = dtPL;
+                    Session["LineLocDataSource4"] = dtExcelExport;
                     Session["Grid4RowCount"] = dtPL.Rows.Count.ToString();
                     Session["dataSourcegrdData4"] = ConvertDataTableToJSON(dtPL);
                     if (strNewRGID == "200-6")
                     {
-                        Session["LineLocDataSource4"] = null;
+                        //Session["LineLocDataSource4"] = null;
                         Session["dataSourcegrdData4"] = null;
                         Session["Grid4RowCount"] = "0";
                     }
                     break;
                 case "5":
-                    Session["LineLocDataSource5"] = dtPL;
+                    Session["LineLocDataSource5"] = dtExcelExport;
                     Session["Grid5RowCount"] = dtPL.Rows.Count.ToString();
                     Session["dataSourcegrdData5"] = ConvertDataTableToJSON(dtPL);
                     if (strNewRGID == "200-6")
                     {
-                        Session["LineLocDataSource5"] = null;
+                        //Session["LineLocDataSource5"] = null;
                         Session["dataSourcegrdData5"] = null;
                         Session["Grid5RowCount"] = "0";
                     }
                     break;
                 case "6":
-                    Session["LineLocDataSource6"] = dtPL;
+                    Session["LineLocDataSource6"] = dtExcelExport;
                     Session["Grid6RowCount"] = dtPL.Rows.Count.ToString();
                     Session["dataSourcegrdData6"] = ConvertDataTableToJSON(dtPL);
                     if (strNewRGID == "200-6")
                     {
-                        Session["LineLocDataSource6"] = null;
+                        //Session["LineLocDataSource6"] = null;
                         Session["dataSourcegrdData6"] = null;
                         Session["Grid6RowCount"] = "0";
                     }
@@ -447,11 +505,18 @@ namespace PicklistDemo.Controllers
         if (dtSides != null) { wb.Worksheets.Add(dtSides, "Sides"); }
         if (dtWeldout != null) { wb.Worksheets.Add(dtWeldout, "Weldout"); }
 
-         // Prepare the file to be downloaded.
-         Response.Clear();
-         Response.Buffer = true;
-         Response.AddHeader("content-disposition", "attachment; filename=Picklist.xlsx");
-         Response.ContentType = "application/vnd.ms-excel";
+            for (int x = 1; x < 7; x++)
+            {
+                wb.Worksheet(x).Rows(1, 1).Style.Fill.BackgroundColor = XLColor.Black;
+                wb.Worksheet(x).Cell(1,2).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                wb.Worksheet(x).Column(2).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+            }
+
+            // Prepare the file to be downloaded.
+            Response.Clear();
+        Response.Buffer = true;
+        Response.AddHeader("content-disposition", "attachment; filename=Picklist.xlsx");
+        Response.ContentType = "application/vnd.ms-excel";
 
          // Flush the workbook to the Response.OutputStream
          using (MemoryStream memoryStream = new MemoryStream())
@@ -463,7 +528,23 @@ namespace PicklistDemo.Controllers
 
          // File has been downloaded.
          Response.End();
-      }
 
-   }
+        }
+
+        public ActionResult Login()
+        {
+            bool loginSuccess = true;
+
+            PrincipalContext domain = new PrincipalContext(ContextType.Domain);
+            UserPrincipal loginNamePrincipal = UserPrincipal.Current;
+            string loginUserName = loginNamePrincipal.GetCurrentUserName();
+            string fullName = loginNamePrincipal.Name;
+            string companyName = loginNamePrincipal.GetCompany();
+            UserPrincipal userPrincipal = UserPrincipal.FindByIdentity(domain, loginUserName);
+
+            return Json(new { success = loginSuccess, UserFullName = fullName, CompanyName = companyName },JsonRequestBehavior.AllowGet);
+
+        }
+
+    }
 }

@@ -1,5 +1,5 @@
 ﻿@Html.Label("Picklist Date:")
-@Html.EJ().DropDownList("PicklistDates").Datasource((IEnumerable<object>)Session["dataSourcePicklistDates"]).ClientSideEvents(e => e.Change("ddlOnClick")).ClientSideEvents(e=> e.DataBound("ddlSimulateClick")).DropDownListFields(Df => Df.Text("Text").Value("Value")).Value((string)Session["strPickDate"])&nbsp;
+@Html.EJ().DropDownList("PicklistDates").Datasource((IEnumerable<object>)Session["dataSourcePicklistDates"]).ClientSideEvents(e => e.Change("ddlOnClick")).ClientSideEvents(e => e.DataBound("ddlSimulateClick")).DropDownListFields(Df => Df.Text("Text").Value("Value")).Value((string)Session["strPickDate"])&nbsp;
 @Html.EJ().Button("btnSubmit").Text("Submit").Type(ButtonType.Submit).CssClass("btnSubmit").Width("120")&nbsp;
 @Html.EJ().Button("btnCloseDate").Text("Close Picklist Date").Type(ButtonType.Button).Width("150").ClientSideEvents(e => e.Click("onCloseDate"))
 
@@ -8,15 +8,13 @@
 @Html.TextBox("strLocationType", null, new { @class = "form-control" })
 @Html.TextBox("rgPriority", null, new { @class = "form-control" })
 @Html.TextBox("txtPicklistDates", null, new { @class = "form-control" })
+@Html.TextBox("txtUserName", null, new { style = "width:200px;text-align:center" })
+@Html.TextBox("txtUserCompanyInfo", null, new { style = "width:100px;text-align:center" })
 
 <script type="text/javascript">
 
-    function ddlSimulateClick()
-    {
+    function ddlSimulateClick() {
         var DropDownListObj = $('#PicklistDates').ejDropDownList().data('ejDropDownList');
-        //DropDownListObj.selectItemsByIndices("0,1"); 
-        //var grd1 = $('#grdAssemblyList1').ejGrid().data('ejGrid');
-        //grd1.datasource = null;
     }
 
 </script>

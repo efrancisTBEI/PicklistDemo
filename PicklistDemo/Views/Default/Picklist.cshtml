@@ -44,12 +44,19 @@
     @Scripts.Render("~/bundles/jqueryval")
 }
 
+@Html.EJ().ScriptManager()
+
 <style>
+
+    .form-control {
+        width:100px
+    }
+
     .e-datewidget {
-            display: inline-block;
-            position: relative;
-            top: 10px;
-        }
+        display: inline-block;
+        position: relative;
+        top: 10px;
+    }
 
     .label {
         padding-bottom: 10px;
@@ -85,7 +92,7 @@
 
 <script>
 
-    $(window).on("load", function () {   });
+    $(window).on("load", function () { });
 
     $(document).ready(function () {
         // Hide these textboxes as they only store info for client / server
@@ -120,10 +127,12 @@
         // Turn on the "Waiting..." css spinner.
         $('.spinner').css('display', 'block');
 
+        var siteID = $("#txtUserCompanyInfo").val();
+
         // Run the partial view controller action.
         $.ajax({
             cache: false,
-            url: "@Url.Action("DisplayResourceGroupsAndPriority", "Default")?strPickDate=" + selectedDate,
+            url: "@Url.Action("DisplayResourceGroupsAndPriority", "Default")?strPickDate=" + selectedDate + "&strSiteID=" + siteID,
             success: onSuccessResourceGroups,
             error: onNoJoy
         });
@@ -179,13 +188,6 @@
                 }
             })
 
-            @*if (confirm('Please confirm that you wish to close the date ' + selectedDate + '?')) {
-
-                // Turn on the "Waiting..." css spinner.
-                $('.spinner').css('display', 'block');
-
-                location.href = "@Url.Action("ClosePicklist", "Default")?picklistDateToClose=" + selectedDate;
-            }*@
         }
     }
 
@@ -215,11 +217,51 @@
             $("#ajaxAssemblyList").html(result);
             ej.widget.init($("#ajaxAssemblyList"));
 
-            //$("#tabPicklist").ejTab({ selectedItemIndex: 1 });
-
         }
 
         function onThisError(result) { alert("Error loading page.");}
     }
+
+    // The initial load of the application finds the user credentials
+    // and then further identifies what site they are assigned to.
+    // 
+    // A "Please wait" window will be displayed during the brief
+    // initialization time required to perform this search.
+    swal({
+        position: 'middle-center',
+        type: 'success',
+        title: 'Initializinig ...please wait ...',
+        showConfirmButton: false
+        //timer: 10000
+    })
+
+    $.ajax({
+            cache: false,
+            dataType: 'json',
+            url: '@Url.Action("Login","Default")',
+            success: onLoginSuccess,
+            error: onLoginFailure
+        });
+
+    function onLoginSuccess(data) {
+        // Set the two top right textboxes to display
+        // the user's full name and their site abbreviation.
+        //
+        // The site abbreviation will be used to determine
+        // which database to utilize for returning data.
+        $("#txtUserName").val(data.UserFullName);
+        $('#txtUserName').css('color', 'blue').css('font-weight', 'bold')
+            $("#txtUserCompanyInfo").val(data.CompanyName);
+        $('#txtUserCompanyInfo').css('color', 'blue').css('font-weight', 'bold')
+
+            if (swal.isVisible()) {
+                swal.close();
+            }
+
+        }
+
+        function onLoginFailure(data) {
+            alert("There was a problem retreiving the user's network credentials.  Please restart this application.");
+        }
 
 </script>
