@@ -101,7 +101,7 @@
         document.getElementById("resourceGroupText").style.display = "none";
         document.getElementById("strLocationType").style.display = "none";
         document.getElementById("txtPicklistDates").style.display = "none";
-        //document.getElementById("btnCloseDate").style.display = "none";
+        document.getElementById("txtUserCompanyCode").style.display = "none";
 
         // Displays the Resource Group and Priority each time the resource
         // group grid is clicked.
@@ -127,7 +127,7 @@
         // Turn on the "Waiting..." css spinner.
         $('.spinner').css('display', 'block');
 
-        var siteID = $("#txtUserCompanyInfo").val();
+        var siteID = $("#txtUserCompanyCode").val();
 
         // Run the partial view controller action.
         $.ajax({
@@ -251,7 +251,8 @@
         // which database to utilize for returning data.
         $("#txtUserName").val(data.UserFullName);
         $('#txtUserName').css('color', 'blue').css('font-weight', 'bold')
-            $("#txtUserCompanyInfo").val(data.CompanyName);
+        $('#txtUserCompanyCode').val(data.CompanyCode);
+        $("#txtUserCompanyInfo").val(data.CompanyName);
         $('#txtUserCompanyInfo').css('color', 'blue').css('font-weight', 'bold')
 
             if (swal.isVisible()) {

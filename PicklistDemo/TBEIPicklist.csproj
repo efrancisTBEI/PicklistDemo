@@ -725,6 +725,7 @@
     <Content Include="Views\Default\_PicklistGrid3.cshtml" />
     <Content Include="Views\Default\_PicklistGrid6.cshtml" />
     <Content Include="Views\Default\_PicklistGrid5.cshtml" />
+    <Content Include="Views\Default\_PicklistGrid7.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

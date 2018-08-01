@@ -72,12 +72,10 @@ namespace PicklistDemo.Controllers
         public PartialViewResult DisplayResourceGroupsAndPriority(string strPickDate, string strSiteID )
         {
 
-            //var strConnStr = GetSyteLineConnectionString(strSiteID);
-            //var strConnStr = "TBEI_AppConnectionString";
-            //throw new Exception(strConnStr.ToString());
+            Session["strExcelPicklistDate"] = strPickDate;
 
-            //var cnSTR = ConfigurationManager.ConnectionStrings[strConnStr.ToString()].ConnectionString;
             var cnSTR = ConfigurationManager.ConnectionStrings["LC_AppConnectionString"].ConnectionString;
+            //var cnSTR = ConfigurationManager.ConnectionStrings["TBEICodeVaut_AppConnectionString"].ConnectionString;
 
             SqlConnection cn = new SqlConnection(cnSTR);
             SqlCommand cmd = new SqlCommand();
@@ -171,6 +169,7 @@ namespace PicklistDemo.Controllers
             GetDataByLineLoc("4", strRGID, strPriority);
             GetDataByLineLoc("5", strRGID, strPriority);
             GetDataByLineLoc("6", strRGID, strPriority);
+            GetDataByLineLoc("7", strRGID, strPriority);
             return PartialView("PicklistAssemblyLists");
         }
 
@@ -368,6 +367,9 @@ namespace PicklistDemo.Controllers
                     case "6":
                         _LineLoc = "Weldout";
                         break;
+                    case "7":
+                        _LineLoc = "";
+                        break;
 
                 }
 
@@ -409,6 +411,9 @@ namespace PicklistDemo.Controllers
             dtExcelExport.Columns[3].ColumnName = "Material Description";
 
             Session["dtPL"] = dtPL;
+
+            Session["strResourceGroupID"] = strNewRGID;
+            Session["strPriorityID"] = strPriority;
 
             switch (strCnt)
             {
@@ -478,56 +483,92 @@ namespace PicklistDemo.Controllers
                         Session["Grid6RowCount"] = "0";
                     }
                     break;
+                case "7":
+                    Session["LineLocDataSource7"] = dtExcelExport;
+                    Session["Grid7RowCount"] = dtPL.Rows.Count.ToString();
+                    Session["dataSourcegrdData7"] = ConvertDataTableToJSON(dtPL);
+                    if (strNewRGID == "200-6")
+                    {
+                        //Session["LineLocDataSource6"] = null;
+                        Session["dataSourcegrdData7"] = null;
+                        Session["Grid7RowCount"] = "0";
+                    }
+                    break;
             }
 
         }
 
-      public void ExportToExcel(string GridModel)
-      {
-         // ClosedXML method of exporting to Excel
+        public void ExportToExcel()
+        {
+            // ClosedXML method of exporting to Excel
 
-         // Create an instance of a workbook.
-         var wb = new XLWorkbook();
+            // Create an instance of a workbook.
+            var wb = new XLWorkbook();
 
-         // Get datatables used to fill each grid.
-         var dtFinish = (DataTable)Session["LineLocDataSource1"];
-         var dtFrames = (DataTable)Session["LineLocDataSource2"];
-         var dtFronts = (DataTable)Session["LineLocDataSource3"];
-         var dtTailgate = (DataTable)Session["LineLocDataSource4"];
-         var dtSides = (DataTable)Session["LineLocDataSource5"];
-         var dtWeldout = (DataTable)Session["LineLocDataSource6"];
+            // Get datatables used to fill each grid.
+            var dtFinish = (DataTable)Session["LineLocDataSource1"];
+            var dtFrames = (DataTable)Session["LineLocDataSource2"];
+            var dtFronts = (DataTable)Session["LineLocDataSource3"];
+            var dtTailgate = (DataTable)Session["LineLocDataSource4"];
+            var dtSides = (DataTable)Session["LineLocDataSource5"];
+            var dtWeldout = (DataTable)Session["LineLocDataSource6"];
 
-        // Add datatable data to a worksheet tab and name accordingly.
-        if (dtFinish !=null) { wb.Worksheets.Add(dtFinish, "Finish"); }
-        if (dtFrames != null) { wb.Worksheets.Add(dtFrames, "Frames"); }
-        if (dtFronts != null) { wb.Worksheets.Add(dtFronts, "Fronts"); }
-        if (dtTailgate != null) { wb.Worksheets.Add(dtTailgate, "Tailgate"); }
-        if (dtSides != null) { wb.Worksheets.Add(dtSides, "Sides"); }
-        if (dtWeldout != null) { wb.Worksheets.Add(dtWeldout, "Weldout"); }
+            // Add datatable data to a worksheet tab and name accordingly.
+            if (dtFinish != null)
+            {
+                var wsFinish = wb.Worksheets.Add(dtFinish, "Finish");
+            }
+            if (dtFrames != null) { wb.Worksheets.Add(dtFrames, "Frames"); }
+            if (dtFronts != null) { wb.Worksheets.Add(dtFronts, "Fronts"); }
+            if (dtTailgate != null) { wb.Worksheets.Add(dtTailgate, "Tailgate"); }
+            if (dtSides != null) { wb.Worksheets.Add(dtSides, "Sides"); }
+            if (dtWeldout != null) { wb.Worksheets.Add(dtWeldout, "Weldout"); }
 
             for (int x = 1; x < 7; x++)
             {
                 wb.Worksheet(x).Rows(1, 1).Style.Fill.BackgroundColor = XLColor.Black;
-                wb.Worksheet(x).Cell(1,2).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                wb.Worksheet(x).Column(1).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                 wb.Worksheet(x).Column(2).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                wb.Worksheet(x).Column(5).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                wb.Worksheet(x).PageSetup.PageOrientation = XLPageOrientation.Landscape;
+                wb.Worksheet(x).PageSetup.Margins.Header = .2;
+                wb.Worksheet(x).PageSetup.Margins.Top = .8;
+                wb.Worksheet(x).PageSetup.Margins.Left = .5;
+                wb.Worksheet(x).PageSetup.Margins.Right = .5;
+                wb.Worksheet(x).PageSetup.ShowGridlines = true;
+                wb.Worksheet(x).Column("A").Width = 10;
+                wb.Worksheet(x).Column("C").Width = 48;
+                wb.Worksheet(x).Column("D").Width = 50;
+                wb.Worksheet(x).Column("E").Width = 8;
+                wb.Worksheet(x).Style.Font.FontSize = 15;
+                wb.Worksheet(x).PageSetup.Header.Left.AddText(Session["strResourceGroupID"].ToString()).SetBold(true);
+                wb.Worksheet(x).PageSetup.Header.Center.AddText("Picklist").SetBold(true).SetFontSize(16).AddNewLine();
+                wb.Worksheet(x).PageSetup.Header.Center.AddText(wb.Worksheet(x).Name + " (" + Session["strPriorityID"].ToString() + ") -- " 
+                    + Session["strExcelPicklistDate"].ToString()).SetFontSize(20).SetBold(true);
+                wb.Worksheet(x).PageSetup.Header.Right.AddText(Session["strPriorityID"].ToString()).SetBold(true);
+                wb.Worksheet(x).PageSetup.Footer.Left.AddText("Report by:  " + Session["strUserFullName"].ToString()).SetBold(true);
+                wb.Worksheet(x).PageSetup.Footer.Center.AddText(Session["strFullCompanyName"].ToString()).SetBold(true).AddNewLine().SetBold(false);
+                wb.Worksheet(x).PageSetup.Footer.Center.AddText(Convert.ToChar(169) + " " + DateTime.Now.Year.ToString() + " TBEI, Inc. and Federal Signal, Inc.").SetBold(false);
+                wb.Worksheet(x).PageSetup.Footer.Right.AddText(Session["strExcelPicklistDate"].ToString()).SetBold(true);
+                wb.Worksheet(x).PageSetup.AlignHFWithMargins = true;
             }
 
             // Prepare the file to be downloaded.
             Response.Clear();
-        Response.Buffer = true;
-        Response.AddHeader("content-disposition", "attachment; filename=Picklist.xlsx");
-        Response.ContentType = "application/vnd.ms-excel";
+            Response.Buffer = true;
+            Response.AddHeader("content-disposition", "attachment; filename=Picklist.xlsx");
+            Response.ContentType = "application/vnd.ms-excel";
 
-         // Flush the workbook to the Response.OutputStream
-         using (MemoryStream memoryStream = new MemoryStream())
-         {
-            wb.SaveAs(memoryStream);
-            memoryStream.WriteTo(Response.OutputStream);
-            memoryStream.Close();
-         }
+            // Flush the workbook to the Response.OutputStream
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                wb.SaveAs(memoryStream);
+                memoryStream.WriteTo(Response.OutputStream);
+                memoryStream.Close();
+            }
 
-         // File has been downloaded.
-         Response.End();
+            // File has been downloaded.
+            Response.End();
 
         }
 
@@ -539,10 +580,47 @@ namespace PicklistDemo.Controllers
             UserPrincipal loginNamePrincipal = UserPrincipal.Current;
             string loginUserName = loginNamePrincipal.GetCurrentUserName();
             string fullName = loginNamePrincipal.Name;
-            string companyName = loginNamePrincipal.GetCompany();
+            string companyCode = loginNamePrincipal.GetCompany();
+            string companyName = "";
             UserPrincipal userPrincipal = UserPrincipal.FindByIdentity(domain, loginUserName);
 
-            return Json(new { success = loginSuccess, UserFullName = fullName, CompanyName = companyName },JsonRequestBehavior.AllowGet);
+            Session["strUserFullName"] = fullName;
+
+            switch (companyCode)
+            {
+                case "FYAL":
+                    companyCode = "FAY";
+                    companyName = "Ox Bodies";
+                    Session["strFullCompanyName"] = "Ox Bodies, Inc. - Fayette, AL";
+                    break;
+                case "HSTX":
+                    companyCode = "Trav_Mfg";
+                    companyName = "Travis";
+                    Session["strFullCompanyName"] = "Travis Body & Trailer, Inc. - Houston, TX";
+                    break;
+                case "LCMN":
+                    companyCode = "LC";
+                    companyName = "Crysteel";
+                    Session["strFullCompanyName"] = "Crysteel Manufacturing, Inc. - Lake Crystal, MN";
+                    break;
+                case "RGND":
+                    companyCode = "RUGBY";
+                    companyName = "Rugby";
+                    Session["strFullCompanyName"] = "Rugby Manufacturing, Inc. - Rugby, ND";
+                    break;
+                case "TISH":
+                    companyCode = "TISH";
+                    companyName = "Duraclass";
+                    Session["strFullCompanyName"] = "Duraclass, Inc. - Tishomingo, MS";
+                    break;
+                case "CORP":
+                    companyCode = "LC";
+                    companyName = "Crysteel";
+                    Session["strFullCompanyName"] = "Crysteel Manufacturing, Inc. - Lake Crystal, MN";
+                    break;
+            }
+
+            return Json(new { success = loginSuccess, UserFullName = fullName, CompanyName = companyName, CompanyCode = companyCode },JsonRequestBehavior.AllowGet);
 
         }
 

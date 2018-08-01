@@ -6,7 +6,8 @@
                             data.Add().ID("tailgate").Text("Tailgate").ContentTemplate(@<div id="ajaxGrid5">@{Html.RenderPartial("_PicklistGrid5");}</div>);
                                     data.Add().ID("sides").Text("Sides").ContentTemplate(@<div id="ajaxGrid4">@{Html.RenderPartial("_PicklistGrid4");}</div>);
                                             data.Add().ID("weldout").Text("Weldout").ContentTemplate(@<div id="ajaxGrid6">@{Html.RenderPartial("_PicklistGrid6");}</div>);
-                                                })
+                                                    data.Add().ID("blank").Text("No Location").ContentTemplate(@<div id="ajaxGrid7">@{Html.RenderPartial("_PicklistGrid7");}</div>);
+                                                        })
 
 <script>
 
@@ -17,6 +18,7 @@
     var grid4RowCount = '@Session["Grid4RowCount"]';
     var grid5RowCount = '@Session["Grid5RowCount"]';
     var grid6RowCount = '@Session["Grid6RowCount"]';
+    var grid7RowCount = '@Session["Grid7RowCount"]';
 
 </script>
 
